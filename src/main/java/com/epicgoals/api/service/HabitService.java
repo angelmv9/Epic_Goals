@@ -32,14 +32,17 @@ public class HabitService {
     private final HabitRepository habitRepository;
     private final HabitCompletionRepository habitCompletionRepository;
     private final CategoryService categoryService;
+    private final ScoreService scoreService;
     
     @Autowired
     public HabitService(HabitRepository habitRepository, 
                        HabitCompletionRepository habitCompletionRepository,
-                       CategoryService categoryService) {
+                       CategoryService categoryService,
+                       ScoreService scoreService) {
         this.habitRepository = habitRepository;
         this.habitCompletionRepository = habitCompletionRepository;
         this.categoryService = categoryService;
+        this.scoreService = scoreService;
     }
     
     @Transactional(readOnly = true)
@@ -62,6 +65,10 @@ public class HabitService {
         
         Habit habit = new Habit(user, category, request.getName(), request.getFrequency());
         Habit savedHabit = habitRepository.save(habit);
+        
+        // Recalculate scores when a new habit is added
+        scoreService.recalculateOnHabitChange(user);
+        
         return convertToDto(savedHabit);
     }
     
@@ -78,6 +85,10 @@ public class HabitService {
         habit.setIsActive(request.getIsActive());
         
         Habit savedHabit = habitRepository.save(habit);
+        
+        // Recalculate scores when a habit is updated
+        scoreService.recalculateOnHabitChange(user);
+        
         return convertToDto(savedHabit);
     }
     
@@ -90,6 +101,9 @@ public class HabitService {
         
         // Delete the habit
         habitRepository.delete(habit);
+        
+        // Recalculate scores when a habit is deleted
+        scoreService.recalculateOnHabitChange(user);
     }
     
     @Transactional(readOnly = true)
@@ -109,16 +123,22 @@ public class HabitService {
         
         Optional<HabitCompletion> existingCompletion = habitCompletionRepository.findByHabitAndDate(habit, date);
         
+        HabitCompletionDto result;
         if (existingCompletion.isPresent()) {
             HabitCompletion completion = existingCompletion.get();
             completion.setCompleted(!completion.getCompleted());
             HabitCompletion savedCompletion = habitCompletionRepository.save(completion);
-            return convertToCompletionDto(savedCompletion);
+            result = convertToCompletionDto(savedCompletion);
         } else {
             HabitCompletion newCompletion = new HabitCompletion(habit, date, true);
             HabitCompletion savedCompletion = habitCompletionRepository.save(newCompletion);
-            return convertToCompletionDto(savedCompletion);
+            result = convertToCompletionDto(savedCompletion);
         }
+        
+        // Recalculate scores when a habit completion is toggled
+        scoreService.recalculateCurrentWeek(user);
+        
+        return result;
     }
     
     @Transactional(readOnly = true)

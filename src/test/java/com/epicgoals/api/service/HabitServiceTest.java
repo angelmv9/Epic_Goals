@@ -42,6 +42,9 @@ class HabitServiceTest {
     @Mock
     private CategoryService categoryService;
 
+    @Mock
+    private ScoreService scoreService;
+
     @InjectMocks
     private HabitService habitService;
 
