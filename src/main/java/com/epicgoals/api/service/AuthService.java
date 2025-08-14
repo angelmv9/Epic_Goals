@@ -20,11 +20,14 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final CategoryService categoryService;
     
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, 
+                      JwtService jwtService, CategoryService categoryService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.categoryService = categoryService;
     }
     
     public AuthResponse register(RegisterRequest request) {
@@ -41,6 +44,9 @@ public class AuthService {
         // Create and save user
         User user = new User(request.email(), passwordEncoder.encode(request.password()));
         user = userRepository.save(user);
+        
+        // Create default categories for new user
+        categoryService.createDefaultCategoriesForUser(user);
         
         // Generate tokens
         String accessToken = jwtService.generateAccessToken(user);
