@@ -1,3 +1,5 @@
+After re-reading the rules in Claude.md:
+
 1. Open **@prompt_plan.md** and identify any prompts not marked as completed.
 2. For each incomplete prompt:
     - Double-check if it's truly unfinished (if uncertain, ask for clarification).

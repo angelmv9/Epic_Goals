@@ -152,7 +152,7 @@ Requirements:
 Integrate with existing auth system - extract user from JWT in controllers.
 ```
 
-### Prompt 4: Weekly Score Calculation System
+### Prompt 4: Weekly Score Calculation System ✅ COMPLETED
 
 ```text
 Implement the weekly score calculation system that tracks habit completion rates.
